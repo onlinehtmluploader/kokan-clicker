@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <title>кокан кликер</title>
+
+  <!-- ВАЖНО для телефонов -->
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+
+  <style>
+    body {
+      margin: 0;
+      overflow: hidden;
+      background: black;
+      touch-action: manipulation;
+    }
+
+    .dvd {
+      position: absolute;
+      width: 200px; /* БОЛЬШАЯ КАРТИНКА */
+      max-width: 60vw; /* чтобы не вылезала на маленьких экранах */
+      cursor: pointer;
+      user-select: none;
+      -webkit-user-drag: none;
+    }
+  </style>
+</head>
+<body>
+
+<audio id="clickSound" src="https://files.catbox.moe/vic6j3.wav" preload="auto"></audio>
+
+<script>
+  const imageSrc = "https://files.catbox.moe/17semm.jpg";
+  const sound = document.getElementById("clickSound");
+
+  const dvds = [];
+
+  function createDVD(x, y) {
+    const img = document.createElement("img");
+    img.src = imageSrc;
+    img.className = "dvd";
+
+    const size = Math.min(200, window.innerWidth * 0.6);
+
+    const dvd = {
+      el: img,
+      size,
+      x: x ?? Math.random() * (window.innerWidth - size),
+      y: y ?? Math.random() * (window.innerHeight - size),
+      vx: (Math.random() < 0.5 ? -1 : 1) * (2 + Math.random() * 2),
+      vy: (Math.random() < 0.5 ? -1 : 1) * (2 + Math.random() * 2)
+    };
+
+    img.style.width = size + "px";
+
+    function onClick(e) {
+      e.preventDefault();
+      e.stopPropagation();
+      sound.currentTime = 0;
+      sound.play();
+      createDVD();
+    }
+
+    // КЛИК для ПК
+    img.addEventListener("click", onClick);
+    // ТАЧ для телефона
+    img.addEventListener("touchstart", onClick, { passive: false });
+
+    document.body.appendChild(img);
+    dvds.push(dvd);
+  }
+
+  function update() {
+    for (const dvd of dvds) {
+      dvd.x += dvd.vx;
+      dvd.y += dvd.vy;
+
+      if (dvd.x <= 0 || dvd.x + dvd.size >= window.innerWidth) {
+        dvd.vx *= -1;
+      }
+      if (dvd.y <= 0 || dvd.y + dvd.size >= window.innerHeight) {
+        dvd.vy *= -1;
+      }
+
+      dvd.el.style.left = dvd.x + "px";
+      dvd.el.style.top = dvd.y + "px";
+    }
+
+    requestAnimationFrame(update);
+  }
+
+  // если поменяли размер экрана / повернули телефон
+  window.addEventListener("resize", () => {
+    for (const dvd of dvds) {
+      dvd.x = Math.min(dvd.x, window.innerWidth - dvd.size);
+      dvd.y = Math.min(dvd.y, window.innerHeight - dvd.size);
+    }
+  });
+
+  createDVD();
+  update();
+</script>
+
+</body>
+</html>
